@@ -4,13 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"okky-hackathon/fridge-master-backend/internal/auth"
 	"okky-hackathon/fridge-master-backend/internal/fridge"
+	"okky-hackathon/fridge-master-backend/internal/recommendation"
 	"okky-hackathon/fridge-master-backend/internal/server/middleware"
 )
 
 type RouterDeps struct {
-	AuthHandler   *auth.AuthHandler
-	AuthService   auth.AuthService
-	FridgeHandler *fridge.FridgeHandler
+	AuthHandler            *auth.AuthHandler
+	AuthService            auth.AuthService
+	FridgeHandler          *fridge.FridgeHandler
+	RecommendationHandler  *recommendation.RecommendationHandler
 }
 
 func NewRouter(deps RouterDeps) *gin.Engine {
@@ -47,6 +49,15 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		fridgeGroup.GET("/:id", f.GetByID)
 		fridgeGroup.PATCH("/:id", f.Update)
 		fridgeGroup.DELETE("/:id", f.Delete)
+
+		// Recommendations
+		rh := deps.RecommendationHandler
+		protected.GET("/recommendations", rh.GetRecommendations)
+		protected.GET("/recommendations/today", rh.GetTodayRecommendations)
+
+		// Recipes (public-ish but grouped under protected for consistency)
+		protected.GET("/recipes", rh.SearchRecipes)
+		protected.GET("/recipes/:id", rh.GetRecipeByID)
 	}
 
 	return r

@@ -12,6 +12,7 @@ type Recipe struct {
 	Description         string             `bson:"description"          json:"description"`
 	RequiredIngredients []string           `bson:"required_ingredients" json:"requiredIngredients"`
 	OptionalIngredients []string           `bson:"optional_ingredients" json:"optionalIngredients"`
+	RawIngredients      []string           `bson:"raw_ingredients"      json:"rawIngredients"`
 	MainIngredient      string             `bson:"main_ingredient"      json:"mainIngredient"`
 	SourceType          string             `bson:"source_type"          json:"sourceType"`
 	SourceURL           string             `bson:"source_url"           json:"sourceUrl"`
