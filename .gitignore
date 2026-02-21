@@ -6,3 +6,8 @@ docs/.pdca-snapshots/*
 .pdca-status.json
 
 config.toml
+
+# Python
+__pycache__/
+.venv/
+*.pyc

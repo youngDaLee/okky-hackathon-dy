@@ -7,12 +7,13 @@ import (
 )
 
 type RecipeSnap struct {
-	Title          string `bson:"title"           json:"title"`
-	SourceURL      string `bson:"source_url"      json:"sourceUrl"`
-	ThumbnailURL   string `bson:"thumbnail_url"   json:"thumbnailUrl"`
-	SourceType     string `bson:"source_type"     json:"sourceType"`
-	MainIngredient string `bson:"main_ingredient" json:"mainIngredient"`
-	Category       string `bson:"category"        json:"category"`
+	Title          string   `bson:"title"            json:"title"`
+	SourceURL      string   `bson:"source_url"       json:"sourceUrl"`
+	ThumbnailURL   string   `bson:"thumbnail_url"    json:"thumbnailUrl"`
+	SourceType     string   `bson:"source_type"      json:"sourceType"`
+	MainIngredient string   `bson:"main_ingredient"  json:"mainIngredient"`
+	Category       string   `bson:"category"         json:"category"`
+	RawIngredients []string `bson:"raw_ingredients"  json:"rawIngredients"`
 }
 
 type SavedRecipe struct {
