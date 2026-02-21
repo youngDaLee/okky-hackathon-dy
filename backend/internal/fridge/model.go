@@ -33,15 +33,15 @@ const (
 
 type Ingredient struct {
 	ID         bson.ObjectID `bson:"_id,omitempty" json:"id"`
-	UserID     bson.ObjectID `bson:"user_id"       json:"userId"`
-	Name       string             `bson:"name"          json:"name"`
-	Category   string             `bson:"category"      json:"category"`
-	Quantity   float64            `bson:"quantity"      json:"quantity"`
-	Unit       string             `bson:"unit"          json:"unit"`
-	ExpiryDate *time.Time         `bson:"expiry_date"   json:"expiryDate"`
-	Source     string             `bson:"source"        json:"source"`
-	AddedAt    time.Time          `bson:"added_at"      json:"addedAt"`
-	UpdatedAt  time.Time          `bson:"updated_at"    json:"updatedAt"`
+	UserID     bson.ObjectID `bson:"user_id"       json:"-"`
+	Name       string        `bson:"name"          json:"name"`
+	Category   string        `bson:"category"      json:"category"`
+	Quantity   float64       `bson:"quantity"      json:"quantity"`
+	Unit       string        `bson:"unit"          json:"unit"`
+	ExpiryDate *time.Time    `bson:"expiry_date"   json:"expiry_date"`
+	Source     string        `bson:"source"        json:"source"`
+	AddedAt    time.Time     `bson:"added_at"      json:"added_at"`
+	UpdatedAt  time.Time     `bson:"updated_at"    json:"updated_at"`
 }
 
 type CreateIngredientReq struct {
@@ -62,13 +62,15 @@ type UpdateIngredientReq struct {
 
 type IngredientResponse struct {
 	Ingredient
-	ExpiryStatus string `json:"expiryStatus"`
+	ExpiryStatus string `json:"expiry_status"`
 }
 
 type FridgeSummary struct {
-	Total  int `json:"total"`
-	Urgent int `json:"urgent"`
-	Soon   int `json:"soon"`
+	Total    int `json:"total"`
+	Urgent   int `json:"urgent"`
+	Soon     int `json:"soon"`
+	Normal   int `json:"normal"`
+	NoExpiry int `json:"no_expiry"`
 }
 
 type BulkDeleteReq struct {
