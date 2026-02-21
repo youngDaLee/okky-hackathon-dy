@@ -7,11 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Auth is a stub middleware that reads the Authorization header.
-// Until JWT middleware is implemented (#2), it accepts any non-empty Bearer token
-// and injects its value as "userID" into the context.
-// In production this will be replaced with full JWT validation.
-func Auth() gin.HandlerFunc {
+// TokenValidator is implemented by AuthService.ValidateAccessToken.
+type TokenValidator interface {
+	ValidateAccessToken(tokenStr string) (string, error)
+}
+
+// Auth returns a JWT validation middleware.
+// Pass a TokenValidator to enable real JWT validation.
+// Without a validator it falls back to treating the token value as userID (dev stub).
+func Auth(validator ...TokenValidator) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 		if header == "" || !strings.HasPrefix(header, "Bearer ") {
@@ -23,8 +27,17 @@ func Auth() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
 			return
 		}
-		// TODO(#2): validate JWT and extract real user ID
-		c.Set("userID", token)
+
+		if len(validator) > 0 && validator[0] != nil {
+			userID, err := validator[0].ValidateAccessToken(token)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+				return
+			}
+			c.Set("userID", userID)
+		} else {
+			c.Set("userID", token)
+		}
 		c.Next()
 	}
 }

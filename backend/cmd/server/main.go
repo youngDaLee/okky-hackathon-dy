@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"okky-hackathon/fridge-master-backend/internal/auth"
 	"okky-hackathon/fridge-master-backend/internal/fridge"
 	"okky-hackathon/fridge-master-backend/internal/server"
 	"okky-hackathon/fridge-master-backend/pkg/config"
@@ -29,6 +30,13 @@ func main() {
 		log.Fatalf("mongodb: %v", err)
 	}
 
+	// Auth domain wiring
+	usersCol := database.GetCollection(mongoClient, cfg.MongoDB, "users")
+	refreshTokensCol := database.GetCollection(mongoClient, cfg.MongoDB, "refresh_tokens")
+	authRepo := auth.NewUserRepository(usersCol, refreshTokensCol)
+	authSvc := auth.NewAuthService(authRepo, cfg.JWTSecret, cfg.JWTAccessTTL, cfg.JWTRefreshTTL)
+	authHandler := auth.NewAuthHandler(authSvc)
+
 	// Fridge domain wiring
 	fridgeCol := database.GetCollection(mongoClient, cfg.MongoDB, "ingredients")
 	fridgeRepo := fridge.NewIngredientRepository(fridgeCol)
@@ -36,11 +44,16 @@ func main() {
 	fridgeHandler := fridge.NewFridgeHandler(fridgeSvc)
 
 	// Ensure indexes at startup (best-effort)
+	if err := authRepo.EnsureIndexes(context.Background()); err != nil {
+		log.Printf("warn: auth index creation: %v", err)
+	}
 	if err := fridgeRepo.EnsureIndexes(context.Background()); err != nil {
-		log.Printf("warn: index creation: %v", err)
+		log.Printf("warn: fridge index creation: %v", err)
 	}
 
 	r := server.NewRouter(server.RouterDeps{
+		AuthHandler:   authHandler,
+		AuthService:   authSvc,
 		FridgeHandler: fridgeHandler,
 	})
 
