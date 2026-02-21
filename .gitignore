@@ -1,2 +1,5 @@
 .idea
 .claude/settings.json
+
+.bkit-memory.json
+.pcda-status.json
