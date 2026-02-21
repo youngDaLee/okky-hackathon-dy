@@ -1,4 +1,4 @@
-module github.com/okky-hackathon/fridge-master-backend
+module okky-hackathon/fridge-master-backend
 
 go 1.24.0
 
