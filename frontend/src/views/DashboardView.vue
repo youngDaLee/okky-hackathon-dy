@@ -16,7 +16,14 @@
 
     <AlertBar :count="store.urgentCount" />
 
-    <RecipeCarousel :recipes="topRecipes" />
+    <!-- 오늘의 추천 -->
+    <div v-if="todayRecipes.length > 0" class="bg-white rounded-xl shadow-sm p-4">
+      <div class="mb-3">
+        <h2 class="text-base font-bold text-gray-900">🔥 오늘의 추천</h2>
+        <p class="text-xs text-gray-500">유통기한 임박 재료로 만들 수 있는 레시피</p>
+      </div>
+      <RecipeCarousel :recipes="todayRecipes" />
+    </div>
 
     <MiniInventory :items="store.ingredients.slice(0, 5)" :loading="store.loading" />
 
@@ -30,7 +37,7 @@ import { useRouter } from 'vue-router'
 import { LogOut } from 'lucide-vue-next'
 import { useIngredientStore } from '@/stores/ingredient.js'
 import { useAuthStore } from '@/stores/auth.js'
-import { DUMMY_RECIPES, calcMatchRate } from '@/data/recipes.js'
+import { useRecipeStore } from '@/stores/recipe.js'
 import AlertBar from '@/components/AlertBar.vue'
 import RecipeCarousel from '@/components/RecipeCarousel.vue'
 import MiniInventory from '@/components/MiniInventory.vue'
@@ -39,24 +46,33 @@ import Cookbook from '@/components/Cookbook.vue'
 const router = useRouter()
 const store = useIngredientStore()
 const auth = useAuthStore()
+const recipeStore = useRecipeStore()
 
 async function handleLogout() {
   await auth.logout()
   router.push('/login')
 }
 
-const fridgeNames = computed(() =>
-  store.ingredients.map((i) => i.name.toLowerCase()),
-)
-
-const topRecipes = computed(() =>
-  DUMMY_RECIPES
-    .map((r) => ({ ...r, matchRate: calcMatchRate(r, fridgeNames.value) }))
-    .filter((r) => r.matchRate === 100)
-    .slice(0, 5),
-)
+// 오늘의 추천 레시피 (URGENT 재료 기반)
+const todayRecipes = computed(() => {
+  return recipeStore.todayRecommendations
+    .map((result) => {
+      const formatted = recipeStore.formatRecommendationResult(result)
+      return {
+        ...formatted,
+        cookTime: formatted.cookingTimeMin ? `${formatted.cookingTimeMin}분` : null,
+        servings: null,
+        difficulty: formatted.difficulty || null,
+      }
+    })
+    .slice(0, 5)
+})
 
 onMounted(async () => {
-  await Promise.all([store.fetchIngredients(), store.fetchSummary()])
+  await Promise.all([
+    store.fetchIngredients(),
+    store.fetchSummary(),
+    recipeStore.fetchTodayRecommendations(),
+  ])
 })
 </script>
