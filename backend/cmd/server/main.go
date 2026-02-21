@@ -61,6 +61,9 @@ func main() {
 		log.Printf("warn: recipe index creation: %v", err)
 	}
 
+	// Seed mock recipes if the collection is empty (for dev/demo)
+	recommendation.SeedRecipesIfEmpty(context.Background(), recipesCol)
+
 	r := server.NewRouter(server.RouterDeps{
 		AuthHandler:           authHandler,
 		AuthService:           authSvc,
