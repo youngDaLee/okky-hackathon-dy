@@ -1,5 +1,6 @@
 .idea
 .claude/settings.json
 
+docs/.pdca-snapshots/*
 .bkit-memory.json
 .pdca-status.json
