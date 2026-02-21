@@ -20,7 +20,7 @@
     <div v-if="todayRecipes.length > 0" class="bg-white rounded-xl shadow-sm p-4">
       <div class="mb-3">
         <h2 class="text-base font-bold text-gray-900">🔥 오늘의 추천</h2>
-        <p class="text-xs text-gray-500">유통기한 임박 재료로 만들 수 있는 레시피</p>
+        <p class="text-xs text-gray-500">유통기한 임박 재료로 만들 수 있는 추천 메뉴</p>
       </div>
       <RecipeCarousel :recipes="todayRecipes" />
     </div>

@@ -206,8 +206,34 @@ function hasIngredient(name) {
 }
 
 // API에서 받은 RecommendationResult를 화면용으로 변환
+// 검색어가 있으면 searchResults 사용, 없으면 recommendations 사용
 const recipes = computed(() => {
-  return recipeStore.recommendations.map((result) => {
+  const source = searchQuery.value ? recipeStore.searchResults : recipeStore.recommendations
+  return source.map((result) => {
+    // searchResults는 Recipe 객체이므로 formatRecommendationResult를 사용할 수 없음
+    if (searchQuery.value) {
+      // 검색 결과는 Recipe 객체
+      const r = result
+      return {
+        id: r.id,
+        title: r.title,
+        description: r.description || '',
+        ingredients: [...(r.requiredIngredients || []), ...(r.optionalIngredients || [])],
+        requiredIngredients: r.requiredIngredients || [],
+        optionalIngredients: r.optionalIngredients || [],
+        category: r.category || '',
+        cookingTimeMin: r.cookingTimeMin || 0,
+        cookTime: r.cookingTimeMin ? `${r.cookingTimeMin}분` : null,
+        servings: null,
+        difficulty: r.difficulty || null,
+        tier: 0, // 검색 결과는 tier 정보 없음
+        matchRate: 0,
+        matchedIngredients: [],
+        missingIngredients: [],
+        urgencyBonus: false,
+      }
+    }
+    // 추천 결과는 RecommendationResult
     const formatted = recipeStore.formatRecommendationResult(result)
     return {
       ...formatted,
@@ -221,33 +247,32 @@ const recipes = computed(() => {
 const filteredRecipes = computed(() => {
   let list = recipes.value
 
-  // 검색 필터
-  if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase()
-    list = list.filter(
-      (r) =>
-        r.title.toLowerCase().includes(q) ||
-        r.ingredients.some((ing) => ing.toLowerCase().includes(q)),
-    )
-  }
+  // 검색어가 없을 때만 클라이언트 사이드 필터링 적용
+  // (API가 필터링하지만, 혹시 모를 경우를 대비해 이중 체크)
+  if (!searchQuery.value) {
+    // 카테고리 필터 (API에서 이미 필터링했지만 이중 체크)
+    if (selectedCategory.value) {
+      list = list.filter((r) => r.category === selectedCategory.value)
+    }
 
-  // 카테고리 필터
-  if (selectedCategory.value) {
-    list = list.filter((r) => r.category === selectedCategory.value)
-  }
+    // 최대 부족 재료 수 필터 (API에서 이미 필터링했지만 이중 체크)
+    if (maxMissing.value !== null) {
+      list = list.filter((r) => (r.missingIngredients?.length || 0) <= maxMissing.value)
+    }
 
-  // 최대 부족 재료 수 필터
-  if (maxMissing.value !== null) {
-    list = list.filter((r) => (r.missingIngredients?.length || 0) <= maxMissing.value)
-  }
-
-  // Tier 필터
-  if (activeTab.value === 'tier1') {
-    list = list.filter((r) => r.tier === 1)
-  } else if (activeTab.value === 'tier2') {
-    list = list.filter((r) => r.tier === 2)
-  } else if (activeTab.value === 'tier3') {
-    list = list.filter((r) => r.tier === 3)
+    // Tier 필터 (API에서 이미 필터링했지만 이중 체크)
+    if (activeTab.value === 'tier1') {
+      list = list.filter((r) => r.tier === 1)
+    } else if (activeTab.value === 'tier2') {
+      list = list.filter((r) => r.tier === 2)
+    } else if (activeTab.value === 'tier3') {
+      list = list.filter((r) => r.tier === 3)
+    }
+  } else {
+    // 검색어가 있을 때는 검색 결과에 카테고리 필터만 적용 (검색 API는 카테고리 지원)
+    if (selectedCategory.value) {
+      list = list.filter((r) => r.category === selectedCategory.value)
+    }
   }
 
   // Tier와 urgencyBonus 기준으로 정렬
@@ -280,6 +305,7 @@ function matchBarClass(rate) {
 
 // 검색어, Tier, 카테고리, max_missing 변경 시 API 호출
 watch([searchQuery, activeTab, selectedCategory, maxMissing], async () => {
+  // 검색어가 있으면 검색 API 사용
   if (searchQuery.value) {
     await recipeStore.searchRecipes({
       keyword: searchQuery.value,
@@ -287,25 +313,27 @@ watch([searchQuery, activeTab, selectedCategory, maxMissing], async () => {
       limit: 20,
     })
   } else {
-    // Tier 필터에 따라 추천 API 호출
+    // 추천 API 호출 (Tier, 카테고리, max_missing 필터 적용)
     const params = { limit: 20 }
+    
+    // Tier 필터 (API는 숫자로 받음)
     if (activeTab.value === 'tier1') params.tier = 1
     else if (activeTab.value === 'tier2') params.tier = 2
     else if (activeTab.value === 'tier3') params.tier = 3
     
-    // 카테고리 필터 추가
+    // 카테고리 필터
     if (selectedCategory.value) {
       params.category = selectedCategory.value
     }
     
-    // 최대 부족 재료 수 필터 추가
+    // 최대 부족 재료 수 필터
     if (maxMissing.value !== null) {
       params.max_missing = maxMissing.value
     }
 
     await recipeStore.fetchRecommendations(params)
   }
-})
+}, { immediate: false })
 
 onMounted(async () => {
   // 재료 목록 로드

@@ -17,8 +17,10 @@ export const useCookbookStore = defineStore('cookbook', () => {
       savedRecipes.value = Array.isArray(data) ? data : []
       return data
     } catch (e) {
+      // Cookbook API가 아직 구현되지 않았을 수 있으므로 조용히 실패
       error.value = e
-      throw e
+      savedRecipes.value = []
+      return []
     } finally {
       loading.value = false
     }
@@ -33,6 +35,7 @@ export const useCookbookStore = defineStore('cookbook', () => {
       await fetchSavedRecipes() // 목록 갱신
       return data
     } catch (e) {
+      // Cookbook API가 아직 구현되지 않았을 수 있음
       error.value = e
       throw e
     } finally {

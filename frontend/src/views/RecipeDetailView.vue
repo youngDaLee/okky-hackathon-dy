@@ -281,7 +281,8 @@ async function handleSaveRecipe() {
     await cookbookStore.fetchSavedRecipes()
   } catch (e) {
     console.error('Failed to save recipe:', e)
-    alert('레시피 저장에 실패했어요. 다시 시도해주세요.')
+    const message = e?.message || '레시피 저장에 실패했어요. 다시 시도해주세요.'
+    alert(message)
   } finally {
     saving.value = false
   }
@@ -312,8 +313,12 @@ onMounted(async () => {
     }
     // 레시피 상세 조회
     await recipeStore.fetchRecipeById(route.params.id)
-    // 저장된 레시피 목록 로드 (저장 여부 확인용)
-    await cookbookStore.fetchSavedRecipes()
+    // 저장된 레시피 목록 로드 (저장 여부 확인용) - 실패해도 계속 진행
+    try {
+      await cookbookStore.fetchSavedRecipes()
+    } catch (cookbookErr) {
+      console.warn('Failed to load saved recipes (non-critical):', cookbookErr)
+    }
   } catch (e) {
     error.value = e
     console.error('Failed to load recipe:', e)
