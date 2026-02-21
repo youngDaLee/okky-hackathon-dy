@@ -122,6 +122,57 @@ AI:
 
 ---
 
+## 브랜치 규칙
+
+### 브랜치 명명 규칙
+
+이슈 번호를 기준으로 브랜치를 생성합니다.
+
+```
+<type>/<issue-number>-<short-description>
+```
+
+**예시:**
+
+```
+feat/12-login-page
+fix/34-email-validation
+docs/7-readme-update
+refactor/21-api-response
+```
+
+### 브랜치 생성 절차
+
+1. GitHub에서 이슈를 먼저 생성합니다 (`/create-issue`)
+2. 이슈 번호를 확인합니다 (예: `#12`)
+3. 브랜치를 생성합니다:
+
+```bash
+git checkout -b feat/12-login-page
+```
+
+4. 작업 완료 후 `/create-pr` 스킬로 PR을 생성합니다
+
+### type 기준
+
+커밋 type과 동일하게 사용합니다.
+
+| type | 사용 시점 |
+|------|----------|
+| `feat` | 새로운 기능 |
+| `fix` | 버그 수정 |
+| `docs` | 문서 변경 |
+| `refactor` | 리팩토링 |
+| `chore` | 설정, 빌드 등 |
+
+### 주의사항
+
+- `main` 브랜치에서 직접 작업하지 않습니다
+- 브랜치명에 이슈 번호가 포함되면 `/create-pr` 실행 시 이슈가 자동 연결됩니다
+- 이슈 하나당 브랜치 하나를 원칙으로 합니다
+
+---
+
 ## PR 생성 (`/create-pr`)
 
 ### PR 제목 형식
