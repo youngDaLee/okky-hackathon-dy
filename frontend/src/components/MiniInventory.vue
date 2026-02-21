@@ -2,7 +2,7 @@
   <div class="bg-white rounded-xl shadow-sm p-4">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-base font-bold text-gray-900">나의 냉장고 현황</h2>
-      <RouterLink to="/add-ingredient" class="text-sm text-blue-600 hover:text-blue-700">
+      <RouterLink to="/fridge" class="text-sm text-blue-600 hover:text-blue-700">
         더보기 &gt;
       </RouterLink>
     </div>
@@ -48,12 +48,15 @@ const props = defineProps({
 })
 
 const CATEGORY_EMOJI = {
-  채소: '🥕',
-  과일: '🍎',
-  육류: '🥩',
-  해산물: '🐟',
-  유제품: '🥛',
-  기타: '🍱',
+  VEGETABLE: '🥕',
+  FRUIT: '🍎',
+  MEAT: '🥩',
+  SEAFOOD: '🐟',
+  DAIRY: '🥛',
+  GRAIN: '🌾',
+  CONDIMENT: '🧂',
+  FROZEN: '🧊',
+  OTHER: '🍱',
 }
 
 function categoryEmoji(category) {
