@@ -45,10 +45,10 @@
         <div class="flex flex-wrap gap-2">
           <CategoryButton
             v-for="cat in CATEGORIES"
-            :key="cat"
-            :label="cat"
-            :selected="form.category === cat"
-            @select="form.category = cat"
+            :key="cat.value"
+            :label="cat.label"
+            :selected="form.category === cat.value"
+            @select="form.category = cat.value"
           />
         </div>
       </div>
@@ -60,8 +60,8 @@
           <input
             v-model.number="form.quantity"
             type="number"
-            min="0"
-            placeholder="0"
+            min="1"
+            placeholder="1"
             class="w-28 border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
           <select
@@ -79,7 +79,7 @@
           유통기한 <span class="text-red-500">*</span>
         </label>
         <input
-          v-model="form.expiry_date"
+          v-model="form.expiryDate"
           type="date"
           required
           :min="today"
@@ -118,7 +118,14 @@ import { X } from 'lucide-vue-next'
 import { useIngredientStore } from '@/stores/ingredient.js'
 import CategoryButton from '@/components/CategoryButton.vue'
 
-const CATEGORIES = ['채소', '과일', '육류', '해산물', '유제품', '기타']
+const CATEGORIES = [
+  { label: '채소',   value: 'VEGETABLE' },
+  { label: '과일',   value: 'FRUIT' },
+  { label: '육류',   value: 'MEAT' },
+  { label: '해산물', value: 'SEAFOOD' },
+  { label: '유제품', value: 'DAIRY' },
+  { label: '기타',   value: 'OTHER' },
+]
 const UNITS = ['개', 'g', 'kg', 'ml', 'L', '팩']
 
 const router = useRouter()
@@ -129,9 +136,9 @@ const today = computed(() => new Date().toISOString().split('T')[0])
 const form = ref({
   name: '',
   category: '',
-  quantity: null,
+  quantity: 1,
   unit: '개',
-  expiry_date: '',
+  expiryDate: '',
 })
 
 const submitting = ref(false)
@@ -143,10 +150,12 @@ async function handleSubmit() {
   try {
     const payload = {
       name: form.value.name.trim(),
-      category: form.value.category || '기타',
-      quantity: form.value.quantity ?? 0,
+      category: form.value.category || 'OTHER',
+      quantity: form.value.quantity ?? 1,
       unit: form.value.unit,
-      expiry_date: form.value.expiry_date || null,
+      expiryDate: form.value.expiryDate
+        ? new Date(form.value.expiryDate).toISOString()
+        : null,
     }
     await store.addIngredient(payload)
     router.push('/')
