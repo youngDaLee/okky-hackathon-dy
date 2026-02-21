@@ -11,6 +11,7 @@ import (
 
 	"okky-hackathon/fridge-master-backend/internal/auth"
 	"okky-hackathon/fridge-master-backend/internal/fridge"
+	"okky-hackathon/fridge-master-backend/internal/recommendation"
 	"okky-hackathon/fridge-master-backend/internal/server"
 	"okky-hackathon/fridge-master-backend/pkg/config"
 	"okky-hackathon/fridge-master-backend/pkg/database"
@@ -43,6 +44,12 @@ func main() {
 	fridgeSvc := fridge.NewFridgeService(fridgeRepo)
 	fridgeHandler := fridge.NewFridgeHandler(fridgeSvc)
 
+	// Recommendation domain wiring
+	recipesCol := database.GetCollection(mongoClient, cfg.MongoDB, "recipes")
+	recipeRepo := recommendation.NewRecipeRepository(recipesCol)
+	recommendationSvc := recommendation.NewRecommendationService(recipeRepo, fridgeSvc)
+	recommendationHandler := recommendation.NewRecommendationHandler(recommendationSvc)
+
 	// Ensure indexes at startup (best-effort)
 	if err := authRepo.EnsureIndexes(context.Background()); err != nil {
 		log.Printf("warn: auth index creation: %v", err)
@@ -50,11 +57,15 @@ func main() {
 	if err := fridgeRepo.EnsureIndexes(context.Background()); err != nil {
 		log.Printf("warn: fridge index creation: %v", err)
 	}
+	if err := recipeRepo.EnsureIndexes(context.Background()); err != nil {
+		log.Printf("warn: recipe index creation: %v", err)
+	}
 
 	r := server.NewRouter(server.RouterDeps{
-		AuthHandler:   authHandler,
-		AuthService:   authSvc,
-		FridgeHandler: fridgeHandler,
+		AuthHandler:           authHandler,
+		AuthService:           authSvc,
+		FridgeHandler:         fridgeHandler,
+		RecommendationHandler: recommendationHandler,
 	})
 
 	srv := &http.Server{
