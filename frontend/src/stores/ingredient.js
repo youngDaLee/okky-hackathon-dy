@@ -43,6 +43,32 @@ export const useIngredientStore = defineStore('ingredient', () => {
     return data
   }
 
+  async function getIngredientById(id) {
+    try {
+      const { data } = await fridgeApi.getById(id)
+      return data
+    } catch (e) {
+      error.value = e
+      throw e
+    }
+  }
+
+  async function updateIngredient(id, form) {
+    try {
+      const { data } = await fridgeApi.update(id, form)
+      // 목록에서 해당 항목 업데이트
+      const index = ingredients.value.findIndex(i => i.id === id)
+      if (index !== -1) {
+        ingredients.value[index] = { ...ingredients.value[index], ...data }
+      }
+      await fetchSummary()
+      return data
+    } catch (e) {
+      error.value = e
+      throw e
+    }
+  }
+
   async function removeIngredient(id) {
     await fridgeApi.deleteOne(id)
     ingredients.value = ingredients.value.filter(i => i.id !== id)
@@ -59,6 +85,8 @@ export const useIngredientStore = defineStore('ingredient', () => {
     fetchIngredients,
     fetchSummary,
     addIngredient,
+    getIngredientById,
+    updateIngredient,
     removeIngredient,
   }
 })

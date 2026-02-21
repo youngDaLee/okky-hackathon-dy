@@ -17,9 +17,14 @@
       <li
         v-for="item in items"
         :key="item.id"
-        class="flex items-center justify-between"
+        class="flex items-center justify-between group"
       >
-        <span class="text-sm text-gray-800">{{ categoryEmoji(item.category) }} {{ item.name }}</span>
+        <button
+          @click="handleEdit(item.id)"
+          class="flex-1 text-left text-sm text-gray-800 hover:text-blue-600 transition-colors"
+        >
+          {{ categoryEmoji(item.category) }} {{ item.name }}
+        </button>
         <span
           v-if="item.expiry_status !== 'NO_EXPIRY'"
           :class="expiryBadgeClass(item.expiry_status)"
@@ -34,7 +39,7 @@
 </template>
 
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 
 const props = defineProps({
   items: {
@@ -46,6 +51,12 @@ const props = defineProps({
     default: false,
   },
 })
+
+const router = useRouter()
+
+function handleEdit(id) {
+  router.push({ name: 'edit-ingredient', params: { id } })
+}
 
 const CATEGORY_EMOJI = {
   VEGETABLE: '🥕',

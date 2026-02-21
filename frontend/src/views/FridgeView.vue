@@ -103,13 +103,22 @@
         >
           {{ expiryLabel(item) }}
         </span>
-        <button
-          @click="handleDelete(item.id)"
-          class="p-1.5 text-gray-300 hover:text-red-500 transition-colors flex-shrink-0"
-          aria-label="삭제"
-        >
-          <Trash2 class="size-4" />
-        </button>
+        <div class="flex items-center gap-1 flex-shrink-0">
+          <button
+            @click="handleEdit(item.id)"
+            class="p-1.5 text-gray-300 hover:text-blue-500 transition-colors"
+            aria-label="수정"
+          >
+            <Edit class="size-4" />
+          </button>
+          <button
+            @click="handleDelete(item.id)"
+            class="p-1.5 text-gray-300 hover:text-red-500 transition-colors"
+            aria-label="삭제"
+          >
+            <Trash2 class="size-4" />
+          </button>
+        </div>
       </li>
     </ul>
   </div>
@@ -117,9 +126,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
-import { Plus, Search, Trash2 } from 'lucide-vue-next'
+import { RouterLink, useRouter } from 'vue-router'
+import { Plus, Search, Trash2, Edit } from 'lucide-vue-next'
 import { useIngredientStore } from '@/stores/ingredient.js'
+
+const router = useRouter()
 
 const store = useIngredientStore()
 
@@ -206,6 +217,10 @@ const filteredItems = computed(() => {
     return matchSearch && matchCategory && matchExpiry
   })
 })
+
+function handleEdit(id) {
+  router.push({ name: 'edit-ingredient', params: { id } })
+}
 
 async function handleDelete(id) {
   if (!confirm('재료를 삭제할까요?')) return

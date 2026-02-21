@@ -2,7 +2,9 @@
   <div class="max-w-4xl mx-auto px-4 py-4">
     <header class="mb-6">
       <div class="flex items-center justify-between mb-1">
-        <h1 class="text-xl font-bold text-gray-900">🥕 재료 추가</h1>
+        <h1 class="text-xl font-bold text-gray-900">
+          {{ isEditMode ? '✏️ 재료 수정' : '🥕 재료 추가' }}
+        </h1>
         <button
           type="button"
           @click="router.back()"
@@ -12,11 +14,19 @@
           <X class="size-5" />
         </button>
       </div>
-      <p class="text-sm text-gray-500">냉장고에 있는 재료를 등록하세요</p>
+      <p class="text-sm text-gray-500">
+        {{ isEditMode ? '재료 정보를 수정하세요' : '냉장고에 있는 재료를 등록하세요' }}
+      </p>
     </header>
 
-    <!-- 사진 빠른 추가 (UI만, 기능 추후) -->
+    <!-- 로딩 상태 -->
+    <div v-if="loading" class="text-center py-8 text-gray-500">
+      재료 정보를 불러오는 중...
+    </div>
+
+    <!-- 사진 빠른 추가 (추가 모드에서만 표시) -->
     <button
+      v-if="!isEditMode"
       type="button"
       disabled
       class="w-full flex items-center justify-center gap-2 bg-gray-50 border border-dashed border-gray-300 rounded-xl py-3 mb-6 text-sm text-gray-400 cursor-not-allowed"
@@ -24,7 +34,7 @@
       📷 영수증/재료 사진으로 빠른 추가 (준비 중)
     </button>
 
-    <form @submit.prevent="handleSubmit" class="space-y-5">
+    <form v-if="!loading" @submit.prevent="handleSubmit" class="space-y-5">
       <!-- 재료 이름 -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -104,7 +114,11 @@
           :disabled="submitting"
           class="flex-1 py-3 bg-blue-600 rounded-xl text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          {{ submitting ? '추가 중...' : '➕ 추가하기' }}
+          {{
+            submitting
+              ? (isEditMode ? '수정 중...' : '추가 중...')
+              : (isEditMode ? '💾 수정하기' : '➕ 추가하기')
+          }}
         </button>
       </div>
     </form>
@@ -112,8 +126,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { X } from 'lucide-vue-next'
 import { useIngredientStore } from '@/stores/ingredient.js'
 import CategoryButton from '@/components/CategoryButton.vue'
@@ -129,7 +143,12 @@ const CATEGORIES = [
 const UNITS = ['개', 'g', 'kg', 'ml', 'L', '팩']
 
 const router = useRouter()
+const route = useRoute()
 const store = useIngredientStore()
+
+const ingredientId = computed(() => route.params.id)
+const isEditMode = computed(() => !!ingredientId.value)
+const loading = ref(false)
 
 const today = computed(() => new Date().toISOString().split('T')[0])
 
@@ -144,6 +163,30 @@ const form = ref({
 const submitting = ref(false)
 const errorMsg = ref('')
 
+// 수정 모드일 때 기존 데이터 로드
+onMounted(async () => {
+  if (isEditMode.value) {
+    loading.value = true
+    try {
+      const ingredient = await store.getIngredientById(ingredientId.value)
+      form.value = {
+        name: ingredient.name || '',
+        category: ingredient.category || '',
+        quantity: ingredient.quantity || 1,
+        unit: ingredient.unit || '개',
+        expiryDate: ingredient.expiry_date
+          ? new Date(ingredient.expiry_date).toISOString().split('T')[0]
+          : '',
+      }
+    } catch (e) {
+      errorMsg.value = '재료 정보를 불러오는데 실패했어요.'
+      console.error('Failed to load ingredient:', e)
+    } finally {
+      loading.value = false
+    }
+  }
+})
+
 async function handleSubmit() {
   errorMsg.value = ''
   submitting.value = true
@@ -157,16 +200,27 @@ async function handleSubmit() {
         ? new Date(form.value.expiryDate).toISOString()
         : null,
     }
-    await store.addIngredient(payload)
+
+    if (isEditMode.value) {
+      await store.updateIngredient(ingredientId.value, payload)
+    } else {
+      await store.addIngredient(payload)
+    }
     router.push('/')
   } catch (e) {
-    const code = e?.response?.data?.code
+    const code = e?.response?.data?.error || e?.response?.data?.code
     if (code === 'DUPLICATE_INGREDIENT') {
       errorMsg.value = '이미 등록된 재료예요.'
     } else if (code === 'FRIDGE_LIMIT_EXCEEDED') {
       errorMsg.value = '재료는 최대 200개까지 등록할 수 있어요.'
+    } else if (code === 'INGREDIENT_NOT_FOUND') {
+      errorMsg.value = '재료를 찾을 수 없어요.'
+    } else if (code === 'VALIDATION_ERROR') {
+      errorMsg.value = e?.response?.data?.message || '입력 정보를 확인해주세요.'
     } else {
-      errorMsg.value = '재료 추가에 실패했어요. 다시 시도해주세요.'
+      errorMsg.value = isEditMode.value
+        ? '재료 수정에 실패했어요. 다시 시도해주세요.'
+        : '재료 추가에 실패했어요. 다시 시도해주세요.'
     }
   } finally {
     submitting.value = false

@@ -23,6 +23,7 @@ const router = createRouter({
         { path: 'recipes',        name: 'recipes',        component: () => import('@/views/RecipesView.vue') },
         { path: 'recipes/:id',    name: 'recipe-detail',  component: () => import('@/views/RecipeDetailView.vue') },
         { path: 'add-ingredient', name: 'add-ingredient', component: () => import('@/views/AddIngredientView.vue') },
+        { path: 'edit-ingredient/:id', name: 'edit-ingredient', component: () => import('@/views/AddIngredientView.vue') },
         { path: 'fridge',         name: 'fridge',         component: () => import('@/views/FridgeView.vue') },
       ],
     },
