@@ -4,3 +4,5 @@
 docs/.pdca-snapshots/*
 .bkit-memory.json
 .pdca-status.json
+
+config.toml
