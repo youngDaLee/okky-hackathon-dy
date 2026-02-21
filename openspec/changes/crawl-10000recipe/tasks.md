@@ -27,4 +27,4 @@
 ## 6. 엔트리포인트 및 통합
 
 - [x] 6.1 `crawler/main.py` — CLI 엔트리포인트: 수집 → 파싱 → 정규화 → 저장 파이프라인 연결
-- [ ] 6.2 실행 테스트: `python crawler/main.py` 로 100개 크롤링 → MongoDB 확인
+- [x] 6.2 실행 테스트: `python crawler/main.py` 로 100개 크롤링 → MongoDB 확인
