@@ -31,15 +31,14 @@ const router = createRouter({
   ],
 })
 
-// TODO: 인증 기능 비활성화 (개발 중)
-// router.beforeEach((to) => {
-//   const token = localStorage.getItem('access_token')
-//   if (to.meta.requiresAuth && !token) {
-//     return { name: 'login' }
-//   }
-//   if (!to.meta.requiresAuth && token && (to.name === 'login' || to.name === 'signup')) {
-//     return { name: 'dashboard' }
-//   }
-// })
+router.beforeEach((to) => {
+  const token = localStorage.getItem('access_token')
+  if (to.meta.requiresAuth && !token) {
+    return { name: 'login' }
+  }
+  if (!to.meta.requiresAuth && token && (to.name === 'login' || to.name === 'signup')) {
+    return { name: 'dashboard' }
+  }
+})
 
 export default router
