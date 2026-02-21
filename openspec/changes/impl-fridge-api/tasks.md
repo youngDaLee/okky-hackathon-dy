@@ -40,5 +40,5 @@
 
 ## 5. Router & Config
 
-- [ ] 5.1 `internal/server/router.go` — fridge 라우트 7개 등록 (auth 미들웨어 적용)
-- [ ] 5.2 `pkg/config/config.go` — 환경변수 로드 구현 (MONGODB_URI, JWT_SECRET 등)
+- [x] 5.1 `internal/server/router.go` — fridge 라우트 7개 등록 (auth 미들웨어 적용)
+- [x] 5.2 `pkg/config/config.go` — 환경변수 로드 구현 (MONGODB_URI, JWT_SECRET 등)
